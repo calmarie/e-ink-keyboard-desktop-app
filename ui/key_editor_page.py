@@ -89,7 +89,6 @@ class KeyEditorPage(QWidget):
         type_row.addWidget(QLabel("Тип действия:"))
         self.action_type_combo = QComboBox()
         self.action_type_combo.addItems(["hotkey", "button", "macro"])
-        self.action_type_combo.currentTextChanged.connect(self.on_action_type_changed)
         type_row.addWidget(self.action_type_combo)
         type_row.addStretch()
         right_panel.addLayout(type_row)
@@ -165,7 +164,7 @@ class KeyEditorPage(QWidget):
         if self.keys_input.text().strip():
             keys = [part.strip() for part in self.keys_input.text().split("+") if part.strip()]
         elif selected_item:
-            keys = self.extract_keys_from_item(selected_item)
+            keys = [token for token in selected_item.text().split("  ")[0].split("+") if token]
         else:
             QMessageBox.warning(
                 self,
@@ -181,17 +180,3 @@ class KeyEditorPage(QWidget):
             image=self.image_input.text().strip(),
         )
         self.on_apply(key_info)
-
-    def on_command_selected(self, item):
-        selected_keys = self.extract_keys_from_item(item)
-        self.keys_input.setText("+".join(selected_keys))
-
-    def on_action_type_changed(self, action_type):
-        is_hotkey = action_type == "hotkey"
-        self.command_list.setVisible(is_hotkey)
-        if not is_hotkey:
-            self.command_list.clearSelection()
-
-    @staticmethod
-    def extract_keys_from_item(item):
-        return [token.strip() for token in item.text().split("  ")[0].split("+") if token.strip()]
