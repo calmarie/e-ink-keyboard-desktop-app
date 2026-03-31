@@ -1,16 +1,19 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import *
 
+from models.models import KeyInfo
+
 
 # =========================
 # ЭКРАН 2 — РЕДАКТОР КЛАВИШИ
 # =========================
 class KeyEditorPage(QWidget):
-    def __init__(self, on_back):
+    def __init__(self, on_back, on_apply):
         super().__init__()
 
         # функция "назад"
         self.on_back = on_back
+        self.on_apply = on_apply
 
         # текущая выбранная клавиша
         self.current_key_index = None
@@ -81,19 +84,14 @@ class KeyEditorPage(QWidget):
         # ================= ПРАВАЯ ЧАСТЬ =================
         right_panel = QVBoxLayout()
 
-        # вкладки (горячие клавиши / кнопки / макросы)
-        tabs_layout = QHBoxLayout()
-
-        hotkeys_tab = QPushButton("горячие клавиши")
-        keys_tab = QPushButton("кнопки")
-        macros_tab = QPushButton("макросы")
-
-        tabs_layout.addWidget(hotkeys_tab)
-        tabs_layout.addWidget(keys_tab)
-        tabs_layout.addWidget(macros_tab)
-        tabs_layout.addStretch()
-
-        right_panel.addLayout(tabs_layout)
+        # тип действия
+        type_row = QHBoxLayout()
+        type_row.addWidget(QLabel("Тип действия:"))
+        self.action_type_combo = QComboBox()
+        self.action_type_combo.addItems(["hotkey", "button", "macro"])
+        type_row.addWidget(self.action_type_combo)
+        type_row.addStretch()
+        right_panel.addLayout(type_row)
 
         # список команд
         self.command_list = QListWidget()
@@ -119,12 +117,23 @@ class KeyEditorPage(QWidget):
 
         right_panel.addWidget(self.command_list)
 
+        # поля для формирования JSON
+        form_layout = QFormLayout()
+        self.keys_input = QLineEdit()
+        self.keys_input.setPlaceholderText("Например: Ctrl+C или Ctrl+Shift+S")
+        self.image_input = QLineEdit()
+        self.image_input.setPlaceholderText("Путь до картинки (необязательно)")
+        form_layout.addRow("Клавиши:", self.keys_input)
+        form_layout.addRow("Картинка:", self.image_input)
+        right_panel.addLayout(form_layout)
+
         # ================= НИЖНЯЯ КНОПКА =================
         bottom_bar = QHBoxLayout()
         bottom_bar.addStretch()
 
         apply_btn = QPushButton("установить")
         apply_btn.setFixedSize(300, 70)
+        apply_btn.clicked.connect(self.apply_key_config)
 
         bottom_bar.addWidget(apply_btn)
 
@@ -144,3 +153,29 @@ class KeyEditorPage(QWidget):
     def set_key(self, key_index):
         self.current_key_index = key_index
         self.title.setText(f"Настройка Key {key_index + 1}")
+
+    def apply_key_config(self):
+        if self.current_key_index is None:
+            QMessageBox.warning(self, "Ошибка", "Сначала выберите клавишу.")
+            return
+
+        selected_item = self.command_list.currentItem()
+        if self.keys_input.text().strip():
+            keys = [part.strip() for part in self.keys_input.text().split("+") if part.strip()]
+        elif selected_item:
+            keys = [token for token in selected_item.text().split("  ")[0].split("+") if token]
+        else:
+            QMessageBox.warning(
+                self,
+                "Ошибка",
+                "Выберите команду из списка или введите комбинацию вручную.",
+            )
+            return
+
+        key_info = KeyInfo(
+            id=self.current_key_index + 1,
+            action_type=self.action_type_combo.currentText(),
+            keys=keys,
+            image=self.image_input.text().strip(),
+        )
+        self.on_apply(key_info)
