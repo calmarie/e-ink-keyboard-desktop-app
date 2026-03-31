@@ -15,10 +15,11 @@ class MainWindow(QMainWindow):
 
         # главный переключатель экранов
         self.stack = QStackedWidget()
+        self.key_configs: dict[int, str] = {}
 
         # создаем страницы
         self.selection_page = KeySelectionPage(self.open_editor)
-        self.editor_page = KeyEditorPage(self.go_back)
+        self.editor_page = KeyEditorPage(self.go_back, self.save_key_config)
 
         # добавляем в стек
         self.stack.addWidget(self.selection_page)
@@ -41,3 +42,12 @@ class MainWindow(QMainWindow):
     # вернуться назад
     def go_back(self):
         self.stack.setCurrentWidget(self.selection_page)
+
+    def save_key_config(self, key_info):
+        payload = key_info.to_json()
+        self.key_configs[key_info.id] = payload
+        QMessageBox.information(
+            self,
+            f"Key {key_info.id}",
+            "JSON сформирован (готов к отправке по Serial):\n\n" + payload,
+        )
