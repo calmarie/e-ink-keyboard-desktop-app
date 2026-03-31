@@ -16,8 +16,6 @@ from PySide6.QtWidgets import (
 
 from models.models import KeyInfo
 
-from models.models import KeyInfo
-
 
 class KeyEditorPage(QWidget):
     """Экран редактирования выбранной клавиши."""
