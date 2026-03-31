@@ -114,6 +114,7 @@ class KeyEditorPage(QWidget):
 
         for text in items:
             QListWidgetItem(text, self.command_list)
+        self.command_list.itemClicked.connect(self.on_command_selected)
 
         right_panel.addWidget(self.command_list)
 
