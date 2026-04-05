@@ -18,4 +18,5 @@ cmake_install.cmake
 *.lib
 *.exp
 *.dll
+*.pyc
 img-converter/e-int_display/build/
