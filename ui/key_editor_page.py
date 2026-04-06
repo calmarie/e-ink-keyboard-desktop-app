@@ -222,9 +222,8 @@ class KeyEditorPage(QWidget):
 
         key_info = KeyInfo(
             id=self.current_key_index + 1,
-            action_type=self.action_type_combo.currentText(),
-            keys=keys,
-            image=image_bytes,
+            img=image_bytes,
+            action="+".join(keys),
         )
         self.on_apply(key_info)
 

@@ -4,7 +4,7 @@ from ui.key_editor_page import KeyEditorPage
 from ui.key_pic_page import KeyPicPage
 from ui.key_select_page import KeySelectionPage
 from ui.theme import window_style
-
+from conn.conn_com import send_packet
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -20,7 +20,7 @@ class MainWindow(QMainWindow):
         self.selection_page = KeySelectionPage(self.open_editor)
         self.editor_page = KeyEditorPage(
             self.go_back,
-            self.save_key_config,
+            self.send_key_config,
             self.open_image_picker,
         )
         self.pic_page = KeyPicPage(self.return_to_editor, self.apply_image_path)
@@ -52,11 +52,15 @@ class MainWindow(QMainWindow):
         self.editor_page.set_image_path(image_path)
         self.return_to_editor()
 
-    def save_key_config(self, key_info):
-        payload = key_info.to_json()
-        self.key_configs[key_info.id] = payload
+    def send_key_config(self, key_info):
+        
         QMessageBox.information(
             self,
             f"Key {key_info.id}",
-            "JSON сформирован (готов к отправке по Serial):\n\n" + payload,
+            "JSON сформирован отправлен:",
+            
         )
+        send_packet(key_info.to_json())
+
+
+        
