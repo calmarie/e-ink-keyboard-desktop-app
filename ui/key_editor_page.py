@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from models.key_info import KeyInfo
+from models.key_info import KeyInfo, encode_hotkey
 from ui.theme import (
     combo_style,
     label_style,
@@ -93,7 +93,7 @@ class KeyEditorPage(QWidget):
         type_row.addWidget(type_label)
 
         self.action_type_combo = QComboBox()
-        self.action_type_combo.addItems(["hotkey", "button", "macro"])
+        self.action_type_combo.addItems(["hotkey", "text"])
         self.action_type_combo.setStyleSheet(combo_style())
         self.action_type_combo.currentTextChanged.connect(self.on_action_type_changed)
 
@@ -143,7 +143,7 @@ class KeyEditorPage(QWidget):
         form_layout.setSpacing(14)
         form_layout.setLabelAlignment(Qt.AlignLeft)
 
-        keys_label = QLabel("Клавиши")
+        keys_label = QLabel("Действие")
         keys_label.setStyleSheet(label_style(muted=True))
 
         image_label = QLabel("Картинка")
@@ -177,6 +177,7 @@ class KeyEditorPage(QWidget):
         content_layout.addLayout(left_panel, 1)
         content_layout.addLayout(right_panel, 3)
         outer_layout.addWidget(content_frame)
+        self.on_action_type_changed(self.action_type_combo.currentText())
 
     def set_key(self, key_index):
         self.current_key_index = key_index
@@ -189,23 +190,48 @@ class KeyEditorPage(QWidget):
         if self.on_change_image:
             self.on_change_image()
 
+
+
+
+
+
+
+
+
+
     def apply_key_config(self):
         if self.current_key_index is None:
             QMessageBox.warning(self, "Ошибка", "Сначала выберите клавишу.")
             return
 
-        selected_item = self.command_list.currentItem()
-        if self.keys_input.text().strip():
-            keys = [part.strip() for part in self.keys_input.text().split("+") if part.strip()]
-        elif selected_item:
-            keys = self.extract_keys_from_item(selected_item)
+        action_type = self.action_type_combo.currentText()
+        action_payload: list[int] | str
+
+        if action_type == "text":
+            action_text = self.keys_input.text()
+            if not action_text:
+                QMessageBox.warning(self, "Ошибка", "Введите текст для отправки.")
+                return
+            action_payload = action_text
         else:
-            QMessageBox.warning(
-                self,
-                "Ошибка",
-                "Выберите команду из списка или введите комбинацию вручную.",
-            )
-            return
+            selected_item = self.command_list.currentItem()
+            if self.keys_input.text().strip():
+                keys = [part.strip() for part in self.keys_input.text().split("+") if part.strip()]
+            elif selected_item:
+                keys = self.extract_keys_from_item(selected_item)
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Ошибка",
+                    "Выберите команду из списка или введите комбинацию вручную.",
+                )
+                return
+
+            try:
+                action_payload = self.encode_keys_for_action(keys)
+            except ValueError as exc:
+                QMessageBox.warning(self, "Ошибка", str(exc))
+                return
 
         image_path = self.image_input.text().strip()
         image_bytes: list[int] = []
@@ -223,7 +249,7 @@ class KeyEditorPage(QWidget):
         key_info = KeyInfo(
             id=self.current_key_index + 1,
             img=image_bytes,
-            action="+".join(keys),
+            action=action_payload,
         )
         self.on_apply(key_info)
 
@@ -237,6 +263,18 @@ class KeyEditorPage(QWidget):
         if not is_hotkey:
             self.command_list.clearSelection()
 
+        if action_type == "text":
+            self.keys_input.setPlaceholderText("Например: Привет, мир!")
+        else:
+            self.keys_input.setPlaceholderText("Например: Ctrl+C или Ctrl+Shift+S")
+
     @staticmethod
     def extract_keys_from_item(item):
         return [token.strip() for token in item.text().split("  ")[0].split("+") if token.strip()]
+
+    @staticmethod
+    def encode_keys_for_action(keys: list[str]) -> list[int]:
+        try:
+            return encode_hotkey(keys)
+        except ValueError as exc:
+            raise ValueError(str(exc)) from exc

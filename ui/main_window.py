@@ -53,14 +53,10 @@ class MainWindow(QMainWindow):
         self.return_to_editor()
 
     def send_key_config(self, key_info):
-        
-        QMessageBox.information(
-            self,
-            f"Key {key_info.id}",
-            "JSON сформирован отправлен:",
-            
-        )
-        send_packet(key_info.to_json())
+        if send_packet(key_info.to_dict()):
+            QMessageBox.information(self, "Готово", "успешно отправлено")
+        else:
+            QMessageBox.warning(self, "Ошибка", "Не удалось отправить конфигурацию")
 
 
         

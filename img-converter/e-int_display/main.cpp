@@ -1,7 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <vector>
-#include <string>
+
 using namespace std;
 using namespace cv;
 
@@ -20,7 +20,7 @@ void prep2EinkSPI(const Mat &img, vector<uint8_t> &bytes)
         uint8_t outByte = 0b0;
         
 
-        for (int xByte = 0; xByte < width; xByte++)
+        for (int xByte = width - 1; xByte >= 0; xByte--)
         {
 
             int bite = row[xByte];
@@ -61,11 +61,13 @@ vector<uint8_t> img2eink(string img_address)
     Mat resized;
     resize(img, resized, Size(184, 88), 0, 0, INTER_AREA);
 
-    Mat rotated;
-    rotate(resized, rotated, ROTATE_90_COUNTERCLOCKWISE);
+    Mat rotated1;
+    rotate(resized, rotated1, ROTATE_90_COUNTERCLOCKWISE);
+    Mat rotated2;
+    rotate(rotated1, rotated2, ROTATE_180);
 
     Mat gray;
-    cvtColor(rotated, gray, COLOR_BGR2GRAY);
+    cvtColor(rotated2, gray, COLOR_BGR2GRAY);
 
     Mat lut(1, 256, CV_8U);
 
@@ -86,6 +88,8 @@ vector<uint8_t> img2eink(string img_address)
     Mat lgray;
 
     LUT(gray, lut, lgray);
+    
+    waitKey(1);
 
     vector<uint8_t> out_im;
 
@@ -94,16 +98,16 @@ vector<uint8_t> img2eink(string img_address)
     return out_im;
 }
 
-// int main()
-// {
-//     int k =0;
-//     std::vector<uint8_t> data = img2eink();
+int main()
+{
+    int k = 0;
+    std::vector<uint8_t> data = img2eink("ctrkl.png");
 
-//     for (auto v : data)
-//     {
-//         std::cout << (int)v << ", ";
-//         k++;
-//     }
-//     cout << endl << k;
-//     cin.get();
-// }
+    for (auto v : data)
+    {
+        std::cout << (int)v << ", ";
+        k++;
+    }
+    cout << endl << k;
+    cin.get();
+}

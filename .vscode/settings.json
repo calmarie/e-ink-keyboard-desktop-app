@@ -1,3 +1,13 @@
 {
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "cmake.sourceDirectory": "${workspaceFolder}/img-converter/e-int_display",
+    "cmake.buildDirectory": "${workspaceFolder}/img-converter/e-int_display/build-release",
+    "cmake.configureOnOpen": false,
+    "cmake.configureSettings": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "pybind11_DIR": "C:/Users/Redmi/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/pybind11/share/cmake/pybind11",
+        "OpenCV_DIR": "D:/OpenCV/opencv/build"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/img-converter/e-int_display/build-release/compile_commands.json"
 }
