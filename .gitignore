@@ -20,3 +20,4 @@ cmake_install.cmake
 *.dll
 *.pyc
 img-converter/e-int_display/build/
+dist
